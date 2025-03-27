@@ -180,18 +180,17 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-    fun DeviceList(devices: List<BluetoothDevice>) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(16.dp)
-        ) {
-            items(devices) { device ->
-                Text(text = "${device.name ?: "Unnamed device"} - ${device.address}")
-            }
+    fun DeviceList(devices: List<BluetoothDevice>) = LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .padding(16.dp)
+    ) {
+        items(devices) { device ->
+            Text(text = "${device.name ?: "Unnamed device"} - ${device.address}")
         }
     }
+
 
     // BLE 스캔 시작
     private fun startBleScan() {
