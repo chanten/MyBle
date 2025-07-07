@@ -5,11 +5,13 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.ParcelUuid
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -60,6 +62,7 @@ class MainActivity : ComponentActivity() {
             super.onScanResult(callbackType, result)
             val device = result.device
 
+            Log.d(TAG, "Device found: ${device.name ?: "Unnamed device"} - ${result.scanRecord}")
             if (!scannedDevices.contains(device)) {
                 scannedDevices.add(device)
                 Log.d(TAG, "Device found: ${device.name ?: "Unnamed device"} - ${device.address}")
@@ -203,7 +206,26 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "startBleScan: Permission BLUETOOTH_CONNECT denied")
             return
         }
-        bluetoothAdapter?.bluetoothLeScanner?.startScan(leScanCallback)
+        val tagServiceUuid = "fd59"
+        val uuidPostFixString = "-0000-1000-8000-00805F9B34FB"
+        val tagServiceParcelUuid: ParcelUuid =   ParcelUuid.fromString(tagServiceUuid + uuidPostFixString)
+        val advVersionMask = 48 // 0010 0000 + 0001 0000
+        val advVersionData = advVersionMask
+        val advVersionDataMask = advVersionMask
+        val scanSettings = ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+            .build()
+        val scanFilter = android.bluetooth.le.ScanFilter.Builder()
+            .build()
+            /*.setServiceUuid(tagServiceParcelUuid)
+            //.setServiceData(tagServiceParcelUuid, byteArrayOf(0x01.toByte(), 48.toByte()))
+            .setServiceData(tagServiceParcelUuid,
+                byteArrayOf(0x01.toByte(), advVersionData.toByte()),
+                byteArrayOf(0xff.toByte(), advVersionDataMask.toByte()))
+        .build()*/
+
+        bluetoothAdapter?.bluetoothLeScanner?.startScan(listOf(scanFilter),scanSettings, leScanCallback)
+        //bluetoothAdapter?.bluetoothLeScanner?.startScan(leScanCallback)
         Log.d(TAG, "BLE scan started")
     }
 
