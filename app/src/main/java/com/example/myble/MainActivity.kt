@@ -286,8 +286,9 @@ class MainActivity : ComponentActivity() {
             .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
             .build()
         val scanFilter = android.bluetooth.le.ScanFilter.Builder()
+            .setServiceUuid(tagServiceParcelUuid)
             .build()
-            /*.setServiceUuid(tagServiceParcelUuid)
+            /*
             //.setServiceData(tagServiceParcelUuid, byteArrayOf(0x01.toByte(), 48.toByte()))
             .setServiceData(tagServiceParcelUuid,
                 byteArrayOf(0x01.toByte(), advVersionData.toByte()),
