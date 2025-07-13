@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    //id 'org.jetbrains.kotlin.plugin.serialization' version '2.0.21' // 사용 중인 Kotlin 버전에 맞는 버전 확인
 }
 
 android {
@@ -37,6 +38,19 @@ android {
 }
 
 dependencies {
+
+    // Ktor Client (Core)
+    implementation libs.ktor.client.core
+
+    /*  CIO = Coroutine-based I/O
+    •	Ktor 팀이 만든 Kotlin Coroutines 기반의 HTTP 클라이언트 엔진
+    •	비동기 HTTP 요청을 처리하는 데 최적화되어 있어, 코루틴과 잘 통합됨
+    •   okhttp/Android엔진도 사용 가능
+    */
+    implementation libs.ktor.client.cio
+
+    // ktor client logging 용
+    implementation libs.ktor.client.logging
 
     implementation libs.androidx.core.ktx
     implementation libs.androidx.lifecycle.runtime.ktx

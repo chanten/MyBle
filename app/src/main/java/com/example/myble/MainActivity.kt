@@ -45,12 +45,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.myble.ui.theme.MyBleTheme
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothManager.adapter
+    }
+
+    private val client = HttpClient(CIO) {
+        install(Logging) {
+            logger = object : Logger {
+                override fun log(message: String) {
+                    Log.d(TAG, "ktor $message")
+                }
+            }
+            level = LogLevel.ALL
+        }
     }
 
     private val isBluetoothEnabled: Boolean
@@ -179,6 +200,18 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val url =
+            "https://api.smartthings.com/catalogs/api/v3/easysetup/discoverydata?mnId=0AFD&setupId=451&osType=android"
+
+        lifecycleScope.launch {
+            try {
+                val response: HttpResponse = client.get(url)
+                val body = response.bodyAsText()
+                Log.d(TAG, "response $body")
+            } catch (e: Exception) {
+                Log.e(TAG, "response $e")
+            }
+        }
     }
 
 
