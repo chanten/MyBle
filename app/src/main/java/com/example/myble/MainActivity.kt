@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +59,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
@@ -191,25 +195,13 @@ class MainActivity : ComponentActivity() {
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
+                            ApiQueryWithButton()
 
                             // 스캔된 장치 목록 표시
                             DeviceList(devices = scannedDevices)
                         }
                     }
                 }
-            }
-        }
-
-        val url =
-            "https://api.smartthings.com/catalogs/api/v3/easysetup/discoverydata?mnId=0AFD&setupId=451&osType=android"
-
-        lifecycleScope.launch {
-            try {
-                val response: HttpResponse = client.get(url)
-                val body = response.bodyAsText()
-                Log.d(TAG, "response $body")
-            } catch (e: Exception) {
-                Log.e(TAG, "response $e")
             }
         }
     }
@@ -227,6 +219,49 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun ApiQueryWithButton() {
+
+        var responseText by remember { mutableStateOf("") }
+        val scope = rememberCoroutineScope() // 버튼 클릭 시 코루틴 실행용
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(
+                    rememberScrollState()
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("SmartThings API 조회", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = {
+                scope.launch {
+                    try {
+                        val response =
+                            client.get("https://api.smartthings.com/catalogs/api/v3/easysetup/discoverydata?mnId=0AFD&setupId=451&osType=android")
+                        val json = JSONObject(response.bodyAsText()).toString(4) // 보기 좋게
+                        responseText = json
+                    } catch (e: Exception) {
+                        responseText = "오류 발생: ${e.message}"
+                    }
+                }
+            }) {
+                Text("API 호출하기")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (responseText.isNotBlank()) {
+                Text("응답:", style = MaterialTheme.typography.labelLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(responseText, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
 
     // BLE 스캔 시작
     private fun startBleScan() {
