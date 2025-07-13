@@ -87,10 +87,19 @@ class MainActivity : ComponentActivity() {
             super.onScanResult(callbackType, result)
             val device = result.device
 
-            Log.d(TAG, "Device found: ${device.name ?: "Unnamed device"} - ${result.scanRecord}")
+            //Log.d(TAG, "Device found: ${device.name ?: "Unnamed device"} - ${result.scanRecord}")
             if (!scannedDevices.contains(device)) {
                 scannedDevices.add(device)
                 Log.d(TAG, "Device found: ${device.name ?: "Unnamed device"} - ${device.address}")
+
+                val scanRecord = result.scanRecord ?: return
+
+                val byteArray = scanRecord.getServiceData(tagServiceParcelUuid) ?: return
+
+                mnId = String(byteArray.sliceArray(1 until 5))
+                setupId = String(byteArray.sliceArray(5 until 8))
+
+                Log.d(TAG, "Tag Device found:$mnId $setupId")
             }
         }
     }
@@ -152,6 +161,7 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     var scanning by remember { mutableStateOf(false) }
 
+
                     Scaffold(
                         modifier = Modifier.fillMaxSize()
                     ) { innerPadding ->
@@ -197,7 +207,7 @@ class MainActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.height(16.dp))
                             // 스캔된 장치 목록 표시
                             DeviceList(devices = scannedDevices)
-                            ApiQueryWithButton("0AFD", "451")
+                            ApiQueryWithButton()
                         }
                     }
                 }
@@ -219,7 +229,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ApiQueryWithButton(mnId: String, setupId: String) {
+    fun ApiQueryWithButton() {
 
         var responseText by remember { mutableStateOf("") }
         val scope = rememberCoroutineScope() // 버튼 클릭 시 코루틴 실행용
@@ -276,9 +286,8 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "startBleScan: Permission BLUETOOTH_CONNECT denied")
             return
         }
-        val tagServiceUuid = "fd59"
-        val uuidPostFixString = "-0000-1000-8000-00805F9B34FB"
-        val tagServiceParcelUuid: ParcelUuid =   ParcelUuid.fromString(tagServiceUuid + uuidPostFixString)
+
+
         val advVersionMask = 48 // 0010 0000 + 0001 0000
         val advVersionData = advVersionMask
         val advVersionDataMask = advVersionMask
@@ -310,6 +319,9 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "BLE scan stopped")
     }
 
+    private var mnId = ""
+    private var setupId = ""
+
     private var scannedDevices = mutableStateListOf<BluetoothDevice>()
     // 필요한 권한 목록
     private val requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -326,6 +338,9 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        private const val TAG_SERVICE_UUID = "fd59"
+        private const val UUID_POST_FIX_STRING = "-0000-1000-8000-00805F9B34FB"
+        private val tagServiceParcelUuid: ParcelUuid =   ParcelUuid.fromString(TAG_SERVICE_UUID + UUID_POST_FIX_STRING)
     }
 }
 
