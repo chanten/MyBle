@@ -195,7 +195,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
-                            ApiQueryWithButton()
+                            ApiQueryWithButton("0AFD", "451")
 
                             // 스캔된 장치 목록 표시
                             DeviceList(devices = scannedDevices)
@@ -220,7 +220,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ApiQueryWithButton() {
+    fun ApiQueryWithButton(mnId: String, setupId: String) {
 
         var responseText by remember { mutableStateOf("") }
         val scope = rememberCoroutineScope() // 버튼 클릭 시 코루틴 실행용
@@ -240,14 +240,7 @@ class MainActivity : ComponentActivity() {
 
             Button(onClick = {
                 scope.launch {
-                    try {
-                        val response =
-                            client.get("https://api.smartthings.com/catalogs/api/v3/easysetup/discoverydata?mnId=0AFD&setupId=451&osType=android")
-                        val json = JSONObject(response.bodyAsText()).toString(4) // 보기 좋게
-                        responseText = json
-                    } catch (e: Exception) {
-                        responseText = "오류 발생: ${e.message}"
-                    }
+                    responseText = getJsonForSmartThingsMnIdAndSetupId(mnId,setupId)
                 }
             }) {
                 Text("API 호출하기")
@@ -261,6 +254,16 @@ class MainActivity : ComponentActivity() {
                 Text(responseText, style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+
+    private suspend fun getJsonForSmartThingsMnIdAndSetupId(mnId: String, setupId: String) =
+        try {
+        val response =
+            client.get("https://api.smartthings.com/catalogs/api/v3/easysetup/discoverydata?mnId=$mnId&setupId=$setupId&osType=android")
+        val json = JSONObject(response.bodyAsText()).toString(4) // 보기 좋게
+        json
+    } catch (e: Exception) {
+        "오류 발생: ${e.message}"
     }
 
     // BLE 스캔 시작
