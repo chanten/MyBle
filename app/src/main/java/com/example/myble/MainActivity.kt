@@ -195,10 +195,9 @@ class MainActivity : ComponentActivity() {
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
-                            ApiQueryWithButton("0AFD", "451")
-
                             // 스캔된 장치 목록 표시
                             DeviceList(devices = scannedDevices)
+                            ApiQueryWithButton("0AFD", "451")
                         }
                     }
                 }
@@ -211,7 +210,7 @@ class MainActivity : ComponentActivity() {
     fun DeviceList(devices: List<BluetoothDevice>) = LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight()
+            .height(120.dp)
             .padding(16.dp)
     ) {
         items(devices) { device ->
